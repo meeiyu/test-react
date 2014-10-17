@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Youtube-test</title>
+
+    <!-- JQuery -->
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    
+    <!-- React -->
+    <script src="http://fb.me/react-0.8.0.js"></script>
+    <script src="http://fb.me/JSXTransformer-0.8.0.js"></script>    
+
+</head>
+<body>
+    <div id="app"></div>
+    
+    <script type="text/jsx">
+        /** @jsx React.DOM */
+
+        var ytUrl = 'http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json';
+
+        var YTSearch = React.createClass({
+            getInitialState: function() {
+                return {
+                    searchStr: '',
+                    searchList: []
+                };
+            },
+            componentWillMount: function() {
+                var that = this;
+                $.ajax({
+                    url: ytUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(res) {
+                        that.setState({searchList:res.feed.entry})
+                    }
+                });
+            },
+            searchHandler: function(evt) {
+                this.setState({searchStr:evt.target.value});
+            },
+            render: function() {
+                var list = this.state.searchList,
+                    str = this.state.searchStr.trim().toLowerCase(),
+                    listElms;
+                if (str.length) {
+                    list = list.filter(function(item) {
+                        return item.title.$t.toLowerCase().match(str);
+                    });
+                }
+                listElms = list.map(function(item, i) {
+                    return (
+                        <li className="list-group-item"><a href={item.link[0].href} target="_blank"><img src={item.media$group.media$thumbnail[0].url} width="50" /> {item.title.$t}</a></li>
+                    );
+                });
+                return (
+                    <div>
+                        <div className="panel panel-default">
+                            <div className="panel-body">
+                                <input type="text" className="form-control" value={this.state.searchStr} onChange={this.searchHandler} placeholder="Youtube Most Popular Search" />
+                            </div>
+                        </div>
+                        <ul className="list-group">{listElms}</ul>
+                    </div>
+                );
+            }
+        });
+
+        React.renderComponent(<YTSearch />, document.getElementById('app'));
+    </script>
+</body>
+</html>
